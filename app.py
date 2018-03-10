@@ -38,17 +38,17 @@ def createNewPerson(img, name):
 
 @app.route('/register/<name>')
 def register(name):
-    f = request.file['file']
+    f = request.files['file']
     f.save('uploaded_img.jpg')
     createNewPerson('uplodaded_img.jpg', name)
 
-@app.route('/identify')
+@app.route('/identify', methods=['POST'])
 def identify():
-    f = request.file['file']
+    f = request.files['file']
     f.save('uploaded_img.jpg')
     faceId = getFaceId('uploaded_img.jpg')
     faceMatchExists = matchFace(faceId)
-    return faceMatchExists
+    return json.dumps(faceMatchExists)
 
 # @app.route('/face/detect-url')
 # def detectUrl():
