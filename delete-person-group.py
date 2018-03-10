@@ -8,9 +8,5 @@ CF.BaseUrl.set(BASE_URL)
 
 # Setting up person group
 person_group_id = 'hack24_peeps'
-name = 'ammar'
 
-res = CF.person.create(person_group_id, name)
-person_id = res['personId']
-CF.person.add_face('photo3.jpg', person_group_id, person_id)
-CF.person_group.train(person_group_id)
+CF.person_group.delete(person_group_id)

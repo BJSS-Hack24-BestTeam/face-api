@@ -6,5 +6,5 @@ CF.Key.set(KEY)
 BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'  # Replace with your regional Base URL
 CF.BaseUrl.set(BASE_URL)
 
-r = CF.person.lists('man')
+r = CF.person.lists('hack24_peeps')
 print r
