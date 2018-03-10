@@ -14,8 +14,9 @@ img2 = open('photo2.jpg')
 
 # Setting up person group
 person_group_id = 'man'
-person_id = 'ammar'
+name = 'ammar'
 # CF.person_group.create(person_group_id)
-CF.person.create(person_group_id, person_id)
+res = CF.person.create(person_group_id, name)
+person_id = res['personId']
 CF.person.add_face('photo3.jpg', person_group_id, person_id)
 CF.person_group.train(person_group_id)
