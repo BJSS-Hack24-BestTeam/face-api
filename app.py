@@ -21,7 +21,11 @@ def getFaceId(img):
 
 def matchFace(faceId):
     res = CF.face.identify([faceId], person_group_id)
-    return res[0]['candidates'][0]
+    candidates = res[0]['candidates']
+    if len(candidates) > 0:
+        return candidates[0]
+    else:
+        return None
 
 def getPerson(personId):
     res = CF.person.get(person_group_id, personId)
@@ -48,9 +52,12 @@ def identify():
     f.save('uploaded_img.jpg')
     faceId = getFaceId('uploaded_img.jpg')
     faceMatch = matchFace(faceId)
-    personId  = faceMatch['personId']
-    person = getPerson(personId)
-    return json.dumps(person)
+    if faceMatch is not None:
+        personId  = faceMatch['personId']
+        person = getPerson(personId)
+        return json.dumps(person)
+    else:
+        return Response(status=404)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
