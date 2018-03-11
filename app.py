@@ -138,12 +138,9 @@ def identify():
     objectsFlag = request.args.get('objects')
     # Check for objects flag and ping vision api if set to true
     faceId = getFaceId('uploaded_img.jpg')
-    print faceId
     if faceId is not None:
-        print 'faceId not None'
         faceMatch = matchFace(faceId)
         if faceMatch is not None:
-            print 'faceMatch not None'
             personId  = faceMatch['personId']
             location_resp = record_location(personId, location)
             person = getPerson(personId)
@@ -155,13 +152,16 @@ def identify():
             else:
                 return json.dumps(person)
         else:
-            print 'faceMatch None'
             easterEggFaceMatch = matchEasterEggFace(faceId)
             if easterEggFaceMatch is not None:
-                print 'easterEggFaceMatch'
                 easterEggPersonId = easterEggFaceMatch['personId']
                 person = getEasterEggPerson(easterEggPersonId)
                 person['isEasterEggPlayer'] = True
+            if objectsFlag is not None:
+                visionDict = getObjects()
+                result = { key: value for (key, value) in (visionDict.items() + person.items()) }
+                return json.dumps(result)
+            else:
                 return json.dumps(person)
     else:
         return Response(status=404)
