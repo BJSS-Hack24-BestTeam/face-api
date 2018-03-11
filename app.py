@@ -147,7 +147,7 @@ def identify():
             personId  = faceMatch['personId']
             location_resp = record_location(personId, location)
             person = getPerson(personId)
-            person['isInManGroup'] = True
+            person['isEasterEggPlayer'] = False
             if objectsFlag is not None:
                 visionDict = getObjects()
                 result = { key: value for (key, value) in (visionDict.items() + person.items()) }
