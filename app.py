@@ -1,15 +1,17 @@
 #!flask/bin/python
 import json
-
+import os.path
 import requests
 from flask import Flask, request, Response
 import cognitive_face as CF
 
 # Setting up keys and endpoint
-KEY = '030d5c89e600472bba1d148dddcff568'  # Replace with a valid Subscription Key here.
-CF.Key.set(KEY)
-BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'  # Replace with your regional Base URL
-CF.BaseUrl.set(BASE_URL)
+VISION_API_KEY = '268f4aaa48a3465b8b8492c1532b798d'
+VISION_API_BASE = 'https://westeurope.api.cognitive.microsoft.com/vision/v1.0/'
+FACE_API_KEY = '030d5c89e600472bba1d148dddcff568'  # Replace with a valid Subscription Key here.
+CF.Key.set(FACE_API_KEY)
+FACE_API_BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'  # Replace with your regional Base URL
+CF.BaseUrl.set(FACE_API_BASE_URL)
 
 person_group_id = 'hack24_peeps'
 
@@ -37,6 +39,28 @@ def createNewPerson(img, name):
     CF.person.add_face(img, person_group_id, personId)
     CF.person_group.train(person_group_id)
 
+def parse_image(image):
+    if hasattr(image, 'read'):  # When image is a file-like object.
+        headers = {'Content-Type': 'application/octet-stream'}
+        data = image.read()
+        return headers, data, None
+    elif os.path.isfile(image):  # When image is a file path.
+        headers = {'Content-Type': 'application/octet-stream'}
+        data = open(image, 'rb').read()
+        return headers, data, None
+    else:  # Default treat it as a URL (string).
+        headers = {'Content-Type': 'application/json'}
+        json = {'url': image}
+        return headers, None, json
+
+# Get objects from vision API
+def getObjects():
+    vision_description_url = VISION_API_BASE + 'describe'
+    headers, data, json = parse_image('uploaded_img.jpg')
+    headers['Ocp-Apim-Subscription-Key'] = VISION_API_KEY
+    response = requests.post(vision_description_url, headers=headers, data=data, json=json)
+    return response.json()
+
 # Registering a new person
 @app.route('/register/<name>', methods=['POST'])
 def register(name):
@@ -50,12 +74,19 @@ def register(name):
 def identify():
     f = request.files['file']
     f.save('uploaded_img.jpg')
+    objectsFlag = request.args.get('objects')
+    # Check for objects flag and ping vision api if set to true
     faceId = getFaceId('uploaded_img.jpg')
     faceMatch = matchFace(faceId)
     if faceMatch is not None:
         personId  = faceMatch['personId']
         person = getPerson(personId)
-        return json.dumps(person)
+        if objectsFlag is not None:
+            visionDict = getObjects()
+            result = { key: value for (key, value) in (visionDict.items() + person.items()) }
+            return json.dumps(result)
+        else:
+            return json.dumps(person)
     else:
         return Response(status=404)
 
