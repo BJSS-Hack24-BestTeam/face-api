@@ -7,5 +7,5 @@ BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'  # Replac
 CF.BaseUrl.set(BASE_URL)
 
 # Setting up person group
-person_group_id = 'hack24_peeps'
+person_group_id = 'easter_egg'
 CF.person_group.create(person_group_id)
