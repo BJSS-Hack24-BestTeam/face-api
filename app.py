@@ -120,7 +120,7 @@ def register(name):
 @app.route('/identify', methods=['POST'])
 def identify():
     f = request.files['file']
-    location = request.data['location']
+    location = request.form['location']
     f.save('uploaded_img.jpg')
     objectsFlag = request.args.get('objects')
     # Check for objects flag and ping vision api if set to true
@@ -138,14 +138,22 @@ def identify():
             else:
                 return json.dumps(person)
         else:
-            ocrRes = ocr()
-            if ocrRes['hasMHR']:
-                easterEggPersonId = createNewEasterEggPlayer('uploaded_img.jpg')
-                ocrRes['personId'] = easterEggPersonId
-            else:
-                return Response(status=404)
+            return Response(status=404)
     else:
         return Response(status=404)
+
+@app.route('/ocr', methods=['POST'])
+def checkocr():
+    f = request.files['file']
+    f.save('ocr.jpg')
+    vision_ocr_url = VISION_API_BASE + 'ocr'
+    headers, data, _json = parse_image('ocr.jpg')
+    headers['Ocp-Apim-Subscription-Key'] = VISION_API_KEY
+    res = requests.post(vision_ocr_url, headers=headers, data=data, json=_json)
+    resDict = res.json()
+    return json.dumps(resDict)
+    resDict['hasMHR'] = hasMHRText(res.json())
+    return json.dumps(resDict)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
