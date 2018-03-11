@@ -8,7 +8,7 @@ import cognitive_face as CF
 # Setting up keys and endpoint
 VISION_API_KEY = '268f4aaa48a3465b8b8492c1532b798d'
 VISION_API_BASE = 'https://westeurope.api.cognitive.microsoft.com/vision/v1.0/'
-FACE_API_KEY = '030d5c89e600472bba1d148dddcff568'
+FACE_API_KEY = '07afcfc6281347698f601d41e59a5afc'
 CF.Key.set(FACE_API_KEY)
 FACE_API_BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'
 CF.BaseUrl.set(FACE_API_BASE_URL)
