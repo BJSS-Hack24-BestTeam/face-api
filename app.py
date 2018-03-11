@@ -18,6 +18,7 @@ person_group_id = 'man'
 easter_egg_person_group_id = 'easter_egg'
 
 app = Flask(__name__)
+CORS(app)
 
 def getFaceId(img):
     res = CF.face.detect(img)
