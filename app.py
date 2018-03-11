@@ -12,6 +12,7 @@ FACE_API_KEY = '030d5c89e600472bba1d148dddcff568'  # Replace with a valid Subscr
 CF.Key.set(FACE_API_KEY)
 FACE_API_BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'  # Replace with your regional Base URL
 CF.BaseUrl.set(FACE_API_BASE_URL)
+WEBSERVICES_BASE = "http://51.143.186.87:8080"
 
 person_group_id = 'hack24_peeps'
 
@@ -53,6 +54,12 @@ def parse_image(image):
         json = {'url': image}
         return headers, None, json
 
+def record_location(personid,location):
+    url = WEBSERVICES_BASE + "/appearance/" + personid
+    body = location
+    resp = requests.put(url,data=body)
+    return resp
+
 # Get objects from vision API
 def getObjects():
     vision_description_url = VISION_API_BASE + 'describe'
@@ -73,6 +80,7 @@ def register(name):
 @app.route('/identify', methods=['POST'])
 def identify():
     f = request.files['file']
+    location = request.data['location']
     f.save('uploaded_img.jpg')
     objectsFlag = request.args.get('objects')
     # Check for objects flag and ping vision api if set to true
@@ -80,6 +88,7 @@ def identify():
     faceMatch = matchFace(faceId)
     if faceMatch is not None:
         personId  = faceMatch['personId']
+        location_resp = record_location(personId, location)
         person = getPerson(personId)
         if objectsFlag is not None:
             visionDict = getObjects()
