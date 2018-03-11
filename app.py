@@ -14,7 +14,7 @@ FACE_API_BASE_URL = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/'
 CF.BaseUrl.set(FACE_API_BASE_URL)
 WEBSERVICES_BASE = "http://51.143.186.87:8080"
 
-person_group_id = 'hack24_peeps'
+person_group_id = 'man'
 easter_egg_person_group_id = 'easter_egg'
 
 app = Flask(__name__)
@@ -36,10 +36,20 @@ def matchFace(faceId):
     else:
         return None
 
+def matchEasterEggFace(faceId):
+    res = CF.face.identify([faceId], easter_egg_person_group_id)
+    candidates = res[0]['candidates']
+    if len(candidates) > 0:
+        return candidates[0]
+    else:
+        return None
+
 def getPerson(personId):
     res = CF.person.get(person_group_id, personId)
-    if res is None:
-        res = CF.person.get(easter_egg_person_group_id, personId)
+    return res
+
+def getEasterEggPerson(personId):
+    res = CF.person.get(easter_egg_person_group_id, personId)
     return res
 
 def createNewPerson(img, name):
@@ -48,8 +58,8 @@ def createNewPerson(img, name):
     CF.person.add_face(img, person_group_id, personId)
     CF.person_group.train(person_group_id)
 
-def createNewEasterEggPlayer(img):
-    res = CF.person.create(easter_egg_person_group_id, 'whatever')
+def createNewEasterEggPlayer(img, name):
+    res = CF.person.create(easter_egg_person_group_id, name)
     personId = res['personId']
     CF.person.add_face(img, easter_egg_person_group_id, personId)
     CF.person_group.train(easter_egg_person_group_id)
@@ -113,7 +123,10 @@ def ocr():
 def register(name):
     f = request.files['file']
     f.save('uploaded_img.jpg')
-    createNewPerson('uploaded_img.jpg', name)
+    if name == 'carl':
+        createNewEasterEggPlayer('uploaded_img.jpg', name)
+    else:
+        createNewPerson('uploaded_img.jpg', name)
     return Response(status=201)
 
 # Identifying against an existing person
@@ -125,12 +138,16 @@ def identify():
     objectsFlag = request.args.get('objects')
     # Check for objects flag and ping vision api if set to true
     faceId = getFaceId('uploaded_img.jpg')
+    print faceId
     if faceId is not None:
+        print 'faceId not None'
         faceMatch = matchFace(faceId)
         if faceMatch is not None:
+            print 'faceMatch not None'
             personId  = faceMatch['personId']
             location_resp = record_location(personId, location)
             person = getPerson(personId)
+            person['isInManGroup'] = True
             if objectsFlag is not None:
                 visionDict = getObjects()
                 result = { key: value for (key, value) in (visionDict.items() + person.items()) }
@@ -138,7 +155,14 @@ def identify():
             else:
                 return json.dumps(person)
         else:
-            return Response(status=404)
+            print 'faceMatch None'
+            easterEggFaceMatch = matchEasterEggFace(faceId)
+            if easterEggFaceMatch is not None:
+                print 'easterEggFaceMatch'
+                easterEggPersonId = easterEggFaceMatch['personId']
+                person = getEasterEggPerson(easterEggPersonId)
+                person['isEasterEggPlayer'] = True
+                return json.dumps(person)
     else:
         return Response(status=404)
 
